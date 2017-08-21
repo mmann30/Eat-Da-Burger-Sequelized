@@ -6,14 +6,19 @@ var exphbs = require('express-handlebars');
 
 // Initializing an Express app
 var app = express();
-
-// Establishing a PORT
 var PORT = process.env.PORT || 3000;
+
+// Syncing models
+var db = require("./models");
+
+// Express app data parsing
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.text());
+app.use(bodyParser.json({ type: "application/vnd.api.json" }));
 
 // Serve static content
 app.use(express.static(__dirname + "/public"));
-
-app.use(bodyParser.urlencoded({ extended: false }));
 
 // Override with POST having ?_method=PUT
 app.use(methodOverride("_method"));
@@ -22,12 +27,12 @@ app.use(methodOverride("_method"));
 app.engine("handlebars", exphbs({ defaultLayout: "main"}));
 app.set("view engine", "handlebars");
 
-// Routing
-var routes = require("./controllers/burgers_controller.js");
-
-app.use("/", routes);
+// Routes
+require("./routes/api-routes.js")(app);
 
 // Starting Server
-app.listen(PORT, function() {
-    console.log("App listening on port " + PORT);
+db.sequelize.sync({}).then(function() {
+    app.listen(PORT, function() {
+        console.log("App listening on port " + PORT);
+    });
 });
